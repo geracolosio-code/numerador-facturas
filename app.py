@@ -15,8 +15,6 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Numerador de facturas")
-st.write("Selecciona una factura PDF para validarla y numerar sus partidas.")
 
 # ============================================================
 # PROCESAMIENTO DEL PDF
@@ -338,51 +336,6 @@ def procesar_pdf(pdf_bytes):
     doc.close()
 
     return pdf_salida, df, ITEMS_FACTURA, UNITS_FACTURA, total_units_detectados
-
-
-# ============================================================
-# INTERFAZ DE LA PÁGINA
-# ============================================================
-
-archivo = st.file_uploader(
-    "Selecciona una factura en formato PDF",
-    type=["pdf"]
-)
-
-if archivo is not None:
-
-    st.info(f"Archivo seleccionado: {archivo.name}")
-
-    if st.button("Validar y numerar factura", type="primary"):
-
-        try:
-            with st.spinner("Procesando factura..."):
-
-                pdf_salida, df, items_esperados, units_esperadas, units_detectadas = (
-                    procesar_pdf(archivo.getvalue())
-                )
-
-            st.success("Validación correcta. La factura fue numerada.")
-
-            st.write(f"**ITEMS detectados:** {len(df)}")
-            st.write(f"**ITEMS esperados:** {items_esperados}")
-            st.write(f"**UNITS calculadas:** {units_detectadas:g}")
-            st.write(f"**UNITS esperadas:** {units_esperadas}")
-
-            st.subheader("Partidas detectadas")
-            st.dataframe(df, use_container_width=True, hide_index=True)
-
-            nombre_salida = archivo.name.rsplit(".", 1)[0] + "_numerado.pdf"
-
-            st.download_button(
-                label="Descargar PDF numerado",
-                data=pdf_salida,
-                file_name=nombre_salida,
-                mime="application/pdf"
-            )
-
-        except Exception as error:
-            st.error(str(error))
 
 
 # ============================================================
