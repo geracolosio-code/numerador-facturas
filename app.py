@@ -383,3 +383,175 @@ if archivo is not None:
 
         except Exception as error:
             st.error(str(error))
+
+
+# ============================================================
+# INTERFAZ MODERNA DE LA PÁGINA
+# ============================================================
+
+st.markdown("""
+<style>
+    .stApp {
+        background: linear-gradient(135deg, #f4f7fb 0%, #eef2f9 100%);
+    }
+
+    .block-container {
+        max-width: 1100px;
+        padding-top: 2.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .hero {
+        background: linear-gradient(120deg, #172554, #2563eb);
+        padding: 2.2rem;
+        border-radius: 22px;
+        color: white;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    .hero h1 {
+        color: white;
+        font-size: 2.2rem;
+        font-weight: 750;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .hero p {
+        color: #dbeafe;
+        font-size: 1.05rem;
+        margin: 0;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #172554;
+        margin-bottom: 0.3rem;
+    }
+
+    .section-subtitle {
+        color: #64748b;
+        margin-bottom: 1rem;
+    }
+
+    div[data-testid="stFileUploader"] {
+        background: white;
+        border: 2px dashed #93c5fd;
+        border-radius: 16px;
+        padding: 1rem;
+    }
+
+    div.stButton > button,
+    div.stDownloadButton > button {
+        border-radius: 12px;
+        min-height: 3rem;
+        font-weight: 650;
+        border: 0;
+        transition: all 0.2s ease;
+    }
+
+    div.stButton > button {
+        background: #2563eb;
+        color: white;
+    }
+
+    div.stButton > button:hover {
+        background: #1d4ed8;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    div.stDownloadButton > button {
+        background: #15803d;
+        color: white;
+    }
+
+    div.stDownloadButton > button:hover {
+        background: #166534;
+        color: white;
+    }
+
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .footer-note {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        padding-top: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="hero">
+    <h1>📄 Numerador de facturas</h1>
+    <p>Valida y numera las partidas de tus facturas PDF de forma sencilla.</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="section-title">1. Selecciona tu factura</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">Carga un archivo PDF para comenzar el proceso.</div>',
+    unsafe_allow_html=True
+)
+
+archivo = st.file_uploader(
+    "Seleccionar archivo PDF",
+    type=["pdf"],
+    label_visibility="collapsed"
+)
+
+if archivo is not None:
+
+    st.success(f"Archivo seleccionado: {archivo.name}")
+
+    st.markdown('<div class="section-title">2. Procesa la factura</div>', unsafe_allow_html=True)
+
+    if st.button("Validar y numerar factura", type="primary", use_container_width=True):
+
+        try:
+            with st.spinner("Procesando y validando la factura..."):
+
+                pdf_salida, df, items_esperados, units_esperadas, units_detectadas = (
+                    procesar_pdf(archivo.getvalue())
+                )
+
+            st.success("¡Validación correcta! La factura fue numerada.")
+
+            st.markdown("### Resumen de validación")
+
+            col1, col2, col3, col4 = st.columns(4)
+
+            col1.metric("Partidas detectadas", len(df))
+            col2.metric("ITEMS esperados", items_esperados)
+            col3.metric("UNITS calculadas", f"{units_detectadas:g}")
+            col4.metric("UNITS esperadas", units_esperadas)
+
+            st.markdown("### Partidas numeradas")
+            st.dataframe(df, use_container_width=True, hide_index=True)
+
+            nombre_salida = archivo.name.rsplit(".", 1)[0] + "_numerado.pdf"
+
+            st.download_button(
+                label="⬇ Descargar PDF numerado",
+                data=pdf_salida,
+                file_name=nombre_salida,
+                mime="application/pdf",
+                use_container_width=True
+            )
+
+        except Exception as error:
+            st.error(str(error))
+
+else:
+    st.info("Selecciona un archivo PDF para habilitar el procesamiento.")
+
+st.markdown(
+    '<div class="footer-note">Herramienta interna para validación y numeración de facturas</div>',
+    unsafe_allow_html=True
+)
